@@ -11,6 +11,8 @@ import { selectGoalsMap, updateGoal as updateGoalRedux } from '../../../store/go
 import { useAppDispatch, useAppSelector } from '../../../store/hooks'
 import DatePicker from '../../components/DatePicker'
 import { Theme } from '../../components/Theme'
+import { BaseEmoji } from 'emoji-mart'
+import { icon } from '../../pages/Main/goals/GoalCard'
 
 type Props = { goal: Goal }
 export function GoalManager(props: Props) {
@@ -74,6 +76,28 @@ export function GoalManager(props: Props) {
       updateGoalApi(props.goal.id, updatedGoal)
     }
   }
+  const [emojiPickerIsOpen, setEmojiPickerIsOpen] = useState(false)
+
+  const hasIcon = () => icon != null
+
+  const pickEmojiOnClick = (emoji: BaseEmoji, event: MouseEvent) => {
+  event.stopPropagation()
+
+  setIcon(emoji.native)
+  setEmojiPickerIsOpen(false)
+
+  const updatedGoal: Goal = {
+    ...props.goal,
+    icon: emoji.native ?? props.goal.icon,
+    name: name ?? props.goal.name,
+    targetDate: targetDate ?? props.goal.targetDate,
+    targetAmount: targetAmount ?? props.goal.targetAmount,
+  }
+
+  dispatch(updateGoalRedux(updatedGoal))
+
+  // TODO(update database)
+}
 
   return (
     <GoalManagerContainer>
@@ -106,7 +130,15 @@ export function GoalManager(props: Props) {
           <StringValue>{new Date(props.goal.created).toLocaleDateString()}</StringValue>
         </Value>
       </Group>
+      <EmojiPickerContainer
+      isOpen={emojiPickerIsOpen}
+      hasIcon={hasIcon()}
+      onClick={(event) => event.stopPropagation()}
+    >
+      <EmojiPicker onClick={pickEmojiOnClick} />
+    </EmojiPickerContainer>
     </GoalManagerContainer>
+    
   )
 }
 
@@ -115,6 +147,14 @@ type AddIconButtonContainerProps = { shouldShow: boolean }
 type GoalIconContainerProps = { shouldShow: boolean }
 type EmojiPickerContainerProps = { isOpen: boolean; hasIcon: boolean }
 
+
+
+const EmojiPickerContainer = styled.div<EmojiPickerContainerProps>`
+  display: ${(props) => (props.isOpen ? 'flex' : 'none')};
+  position: absolute;
+  top: ${(props) => (props.hasIcon ? '10rem' : '2rem')};
+  left: 0;
+`
 const Field = (props: FieldProps) => (
   <FieldContainer>
     <FontAwesomeIcon icon={props.icon} size="2x" />
@@ -182,3 +222,7 @@ const StringInput = styled.input`
 const Value = styled.div`
   margin-left: 2rem;
 `
+function setIcon(native: any) {
+  throw new Error('Function not implemented.')
+}
+
